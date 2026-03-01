@@ -15,7 +15,7 @@ class HTMLNode():
     
     def to_html(self):
         # to-be-overriden by child class
-        raise NotImplementedError("Error. to_html has not yet been overriden.")
+        raise NotImplementedError("Error: to_html has not yet been overriden.")
     
     def props_to_html(self):
         if self.props is None or len(self.props) < 1:
