@@ -31,8 +31,8 @@ class HTMLNode():
     
 
 
-    
-    # For display
+
+    ## For display
 
     def _clip_str(self, input_str, clip_len=11):
         # display only first 11 characters of a string if len > 11
