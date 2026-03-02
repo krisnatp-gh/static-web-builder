@@ -37,3 +37,4 @@ class TestParentNode(unittest.TestCase):
             node.to_html(),
             '<p><b>Bold text</b>Normal text<span><b>aiaiaou</b><a href="https://www.google.com" target="_blank">gugle</a></span>Normal text</p>'
         )
+

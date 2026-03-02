@@ -11,7 +11,7 @@ class TestTextNode(unittest.TestCase):
 
     def test_neq(self):
         node = TextNode("This is a link node", TextType.LINK, "https://www.boot.dev")
-        node2 = TextNode("This is a link node", TextType.IMAGE_LINK, "https://www.boot.dev")
+        node2 = TextNode("This is a link node", TextType.IMAGE, "https://www.boot.dev")
 
         self.assertNotEqual(node, node2)
 
