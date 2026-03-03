@@ -1,6 +1,6 @@
 import unittest
 
-from textnode import TextNode, TextType
+from textnode import TextNode, TextType, split_nodes_delimiter
 
 class TestTextNode(unittest.TestCase):
     def test_eq(self):
@@ -33,6 +33,39 @@ class TestTextNode(unittest.TestCase):
         self.assertEqual(
             f"TextNode(This is a text node, {TextType.TEXT.value}, https://www.boot.dev)", repr(node)
         )
+    
+    def test_split_nodes_delimiter(self):
+        node = TextNode("**bold1 **and** bold2** word", TextType.TEXT) # **and** should be bold (?) but I guess I can ignore nested inlines for now
+        output = split_nodes_delimiter([node], "**", TextType.BOLD)
+        print(output)
+
+        node = TextNode("**bold1** and **bold2**", TextType.TEXT) # 'and' shouldnt be bold here
+        output = split_nodes_delimiter([node], "**", TextType.BOLD)
+        print(output)
+
+
+        node = TextNode("**ay**", TextType.TEXT)
+        output = split_nodes_delimiter([node], "**", TextType.BOLD) # empty string shouldnt be there
+        print(output)
+
+        # node = TextNode("****", TextType.TEXT)
+        # output = split_nodes_delimiter([node], "**", TextType.BOLD)
+        # print(output)
+
+    def test_delim_bold_and_italic(self):
+        node = TextNode("**bold** and _italic_", TextType.TEXT)
+        new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
+        new_nodes = split_nodes_delimiter(new_nodes, "_", TextType.ITALIC)
+        self.assertListEqual(
+            [
+                TextNode("bold", TextType.BOLD),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("italic", TextType.ITALIC),
+            ],
+            new_nodes,
+        )
+
+        print(new_nodes)
 
 
 if __name__ == "__main__":

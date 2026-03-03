@@ -5,7 +5,7 @@ import unittest
 
 class TestParentNode(unittest.TestCase):
 
-    def test_parent_with_children(self):
+    def test_parent_with_children(self):    
         child_node = LeafNode("span", "child")
         parent_node = ParentNode("div", [child_node])
         self.assertEqual(parent_node.to_html(), "<div><span>child</span></div>")
