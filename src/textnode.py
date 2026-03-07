@@ -82,7 +82,6 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
             new_nodes.append(node)
             continue
 
-
         if len(splitted_by_delimiter_list) == 2: # no closing delimiter detected
             raise SyntaxError("Error: Invalid markdown syntax")
 
