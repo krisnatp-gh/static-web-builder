@@ -51,6 +51,10 @@ class TestTextNode(unittest.TestCase):
         # node = TextNode("****", TextType.TEXT)
         # output = split_nodes_delimiter([node], "**", TextType.BOLD)
         # print(output)
+        node = TextNode("**The words: not all who **wander** are **lost****", TextType.TEXT)
+        output = split_nodes_delimiter([node], "**", TextType.BOLD)
+        print(output)
+
 
     def test_delim_bold_and_italic(self):
         node = TextNode("**bold** and _italic_", TextType.TEXT)

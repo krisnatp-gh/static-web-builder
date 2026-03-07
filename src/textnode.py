@@ -68,39 +68,47 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
     for node in old_nodes:
         if node.text_type != TextType.TEXT:
             new_nodes.append(node)
+            continue
 
-        # TBA: Nested logic works, but the text type is still incorrect for "**bold1** and **bold2**"
-        # 'and' must not be bold
-        else:
+        # you only want to split nodes when the text is nonempty
+        if len(node.text) < 1:
+            continue
 
-            splitted_by_delimiter_list = node.text.split(delimiter, maxsplit=2)
+        # If a node is a nonempty text node, then split recursively to find delimiters
+        splitted_by_delimiter_list = node.text.split(delimiter, maxsplit=2)
+
+        # base case
+        if len(splitted_by_delimiter_list) == 1: # only one item: no delimiter, is text type
+            new_nodes.append(node)
+            continue
 
 
-            if len(splitted_by_delimiter_list) == 1: # only one item: no delimiter, is text type
-                if len(node.text) > 0:
-                    new_nodes.append(node)
-            elif len(splitted_by_delimiter_list) == 2: # no closing delimiter detected
-                raise SyntaxError("Error: Invalid markdown syntax")
+        if len(splitted_by_delimiter_list) == 2: # no closing delimiter detected
+            raise SyntaxError("Error: Invalid markdown syntax")
 
-            else:
-                # three item separated by delimiter
-                first, target, nested = splitted_by_delimiter_list
+        # pass above: have three items separated by delimiter
+        first, target, nested = splitted_by_delimiter_list
 
-                if node.text.startswith(delimiter) and len(first) > 0:              # if text starts with delimiter, then first item is a bold node
-                    new_nodes.append(TextNode(first, text_type))                    # append first item (if exists)
-                elif not node.text.startswith(delimiter) and len(first) > 0:        # if text is nonempty but does not start with delimiter, then first item is a text node
-                    new_nodes.append(TextNode(first, TextType.TEXT))
-                
-                target_node = TextNode(target, text_type)      # second item,  is guaranteed to be text_type
-                
-                nested_node = TextNode(nested, TextType.TEXT)  # third item, may contain nested delimiters
-                
-                temp_nodes = split_nodes_delimiter([nested_node], delimiter, text_type) # recursively get delimiter nested nodes
+        # if text starts with delimiter, then first item is a bold node
+        # append the nonempty text as delimiter type node
+        if node.text.startswith(delimiter) and len(first) > 0:              
+            new_nodes.append(TextNode(first, text_type))
+        
+        # if text is nonempty but does not start with delimiter, then first item is a text node
+        # append the nonempty text as text node
+        elif not node.text.startswith(delimiter) and len(first) > 0:       
+            new_nodes.append(TextNode(first, TextType.TEXT))
+        
+        target_node = TextNode(target, text_type)      # second item, is guaranteed to be text_type
+        
+        nested_node = TextNode(nested, TextType.TEXT)  # third item, may contain nested delimiters
+        
+        temp_nodes = split_nodes_delimiter([nested_node], delimiter, text_type) # recursively get delimiter nested nodes
 
-                if len(target) > 0:
-                    new_nodes.append(target_node)
+        if len(target) > 0:
+            new_nodes.append(target_node)
 
-                new_nodes.extend(temp_nodes)
+        new_nodes.extend(temp_nodes)
 
                 
 
