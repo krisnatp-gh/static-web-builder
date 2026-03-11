@@ -18,13 +18,24 @@ class TestExtractUrls(unittest.TestCase):
 
         self.assertListEqual([('rick roll', 'https://i.imgur.com/aKaOqIh.gif'), ('obi wan', 'https://i.imgur.com/fJRm4Vk.jpeg')], matches)
 
+    def def_test_extract_markdown_images_no_alt(self):
+        matches = extract_markdown_images("![](https://rentry.co)")
+        self.assertListEqual([('', 'https://rentry.co')], matches)
+
+    def test_extract_markdown_images_special_characters(self):
+        matches = extract_markdown_images("![diy link](https://google.com/search?q=how+to+basic)")
+        self.assertListEqual([('diy link', 'https://google.com/search?q=how+to+basic')], matches)
+
+    def test_extract_markdown_images_no_exclamation(self):
+        matches = extract_markdown_images("[diy link](https://google.com/search?q=how+to+basic)")
+        self.assertListEqual([], matches)
 
     def text_extract_markdown_links(self):
         matches = extract_markdown_links(
-            "This is text with a url: [pixiv](https://www.pixiv.net)"
+            "This is text with a url: [diy link](https://google.com/search?q=how+to+basic)"
         )
         
-        self.assertListEqual([("pixiv", "https://www.pixiv.net")], matches)
+        self.assertListEqual([("diy link", "https://google.com/search?q=how+to+basic")], matches)
 
 
     def test_extract_multiple_markdown_links(self):

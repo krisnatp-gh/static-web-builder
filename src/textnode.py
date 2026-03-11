@@ -1,3 +1,5 @@
+from extract_urls import extract_markdown_images, extract_markdown_links
+
 from enum import Enum
 
 class TextType(Enum):
@@ -19,7 +21,7 @@ def is_valid_delimiter(text_type, delimiter):
         case (TextType.ITALIC, "_"):
             return True
 
-        case (TextType.CODE, "`") | (TextType.CODE, "```"):
+        case (TextType.CODE, "`"):
             return True
         
         case _:
@@ -43,6 +45,34 @@ class TextNode():
     
     def __repr__(self):
         return f"TextNode({self.text}, {self.text_type.value}, {self.url})"
+
+def text_to_textnodes(text):
+    """
+    Take a markdown text and split it into a list of TextNodes using split functions below
+
+    Args:
+        text (str): markdown text to be split into
+    
+    Returns:
+        list of TextNodes: list of text nodes split by delimiter and images
+    """
+    node = TextNode(text = text,
+                    text_type = TextType.TEXT
+                    )
+    
+    # Split into bold delimiters
+    new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
+    # Split nto italics delimiters
+    new_nodes = split_nodes_delimiter(new_nodes, "_", TextType.ITALIC)
+    # Split into code delimiters
+    new_nodes = split_nodes_delimiter(new_nodes, "`", TextType.CODE)
+    # Extract images
+    new_nodes = split_nodes_image(new_nodes)
+    # Extract links
+    new_nodes = split_nodes_link(new_nodes)
+
+    return new_nodes
+
 
 
 
@@ -115,5 +145,119 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
     return new_nodes
 
 
+def split_nodes_image(old_nodes):
+
+    new_nodes = []
+    for node in old_nodes:
+        if node.text is None:
+            new_nodes.append(node)
+            continue
+        
+        matches = extract_markdown_images(node.text)
+
+        if len(matches) < 1:
+            new_nodes.append(node)
+            continue # no image urls --> append node as is and move on to next iteration
+        
+        # matches now guaranteed to have at least one image_alt, urls
+        current_text = node.text
+        for image_alt, image_link in matches:
+            image_markdown = f"![{image_alt}]({image_link})"
+            sections = current_text.split(image_markdown, maxsplit=1) # since the link separator is guaranteed to be there, may have at least two items
+            #
+            # two items --> case 1 : current_text is a text followed by image url and some other text (may contain another image_url) [<text1>, <text2>]
+            #               case 2 : current_text is an image url followed by some other text (may contain another image_url) ['', <text>]
+            #               case 3 : current_text is a text followed by an image url [<text>, '']
+            #               case 4 : current_text is just an image url ['', '']
+
+            if sections[0] != '':
+                # append the text node preceding the image markdown
+                pre_node = TextNode(text = sections[0], 
+                                    text_type = TextType.TEXT
+                                    )
+
+                new_nodes.append(pre_node)
 
 
+            # append the image node following the text
+            image_node = TextNode(text = image_alt, 
+                                  text_type = TextType.IMAGE,
+                                  url = image_link
+                                  )
+            new_nodes.append(image_node)
+            
+            current_text  = sections[1] # move to second element -> in the next loop match second image link
+        
+        # done looping throughout all matching url -> check if there's remaining current text then append
+        if current_text != '':
+            after_node = TextNode(text = current_text,
+                                  text_type = TextType.TEXT,
+                                  )
+            new_nodes.append(after_node)
+
+    
+    return new_nodes
+
+            
+
+def split_nodes_link(old_nodes):
+
+    new_nodes = []
+    for node in old_nodes:
+        if node.text is None:
+            new_nodes.append(node)
+            continue
+        
+        matches = extract_markdown_links(node.text)
+
+        if len(matches) < 1:
+            new_nodes.append(node)
+            continue # no link urls --> append node as is and move on to next iteration
+        
+        # matches now guaranteed to have at least one link_alt, urls
+        current_text = node.text
+
+        for link_alt, regular_link in matches:
+            link_markdown = f"[{link_alt}]({regular_link})"
+            sections = current_text.split(link_markdown, 1) # since the link separator is guaranteed to be there, may have at least two items
+            #
+            # two items --> case 1 : current_text is a text followed by link url and some other text (may contain another link_url) [<text1>, <text2>]
+            #               case 2 : current_text is a link url followed by some other text (may contain another link_url) ['', <text>]
+            #               case 3 : current_text is a text followed by an link url [<text>, '']
+            #               case 4 : current_text is just an image url ['', '']
+
+            if sections[0] != '':
+                # append the text node preceding the link markdown
+                pre_node = TextNode(text = sections[0], 
+                                    text_type = TextType.TEXT
+                                    )
+
+                new_nodes.append(pre_node)
+
+
+            # append the link node following the text
+            link_node = TextNode(text = link_alt, 
+                                  text_type = TextType.LINK,
+                                  url = regular_link
+                                  )
+            new_nodes.append(link_node)
+            
+            current_text  = sections[1] # move to second element -> in the next loop match second link
+        
+        # done looping throughout all matching url -> check if there's remaining current text then append
+        if current_text != '':
+            after_node = TextNode(text = current_text,
+                                  text_type = TextType.TEXT,
+                                  )
+            new_nodes.append(after_node)
+
+
+    
+    return new_nodes
+
+                        
+        
+
+        
+
+        
