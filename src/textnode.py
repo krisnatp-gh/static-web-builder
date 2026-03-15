@@ -3,6 +3,7 @@ from extract_urls import extract_markdown_images, extract_markdown_links
 from enum import Enum
 
 class TextType(Enum):
+# For denoting type of texts. The values correspond to the HTML tags of the markdown delimiters or image/url markers.
     TEXT = ""
     BOLD = "b"
     ITALIC = "i"
@@ -30,7 +31,9 @@ def is_valid_delimiter(text_type, delimiter):
 
 
 class TextNode():
-    
+    """
+    Represent parsed markdown meaning.
+    """
     def __init__(self, text, text_type, url=None):
         self.text= text
         self.text_type = text_type
