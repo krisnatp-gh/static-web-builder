@@ -1,3 +1,6 @@
+
+
+
 # Pattern matching for extracting urls
 IMAGE_URL_PATTERN = r"!\[([^\[\]]*)\]\(([^\(\)]*)\)"
 

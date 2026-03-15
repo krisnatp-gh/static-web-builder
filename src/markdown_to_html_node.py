@@ -1,12 +1,33 @@
-import re
-
-from config import HEADER_BLOCK_MARKER, CODE_BLOCK_MARKER, QUOTE_BLOCK_MARKER, UNORDERED_LIST_BLOCK_MARKER, ORDERED_LIST_BLOCK_MARKER
+from functools import partial
 
 from blocktype import BlockType, block_to_blocktype, markdown_to_blocks
-from htmlnode import HTMLNode
+from block_to_html_node import *
+
 from parentnode import ParentNode
-from leafnode import LeafNode, text_node_to_html_node
-from textnode import TextNode, text_to_textnodes
+
+BLOCKTYPE_TO_HTML_NODE_FUNCTION_MAP = {
+    # Maps heading block types to function that convert the text into header node
+    BlockType.HEADING_1: partial(text_to_header_node, header_block_type = BlockType.HEADING_1),
+    BlockType.HEADING_2: partial(text_to_header_node, header_block_type = BlockType.HEADING_2),
+    BlockType.HEADING_3: partial(text_to_header_node, header_block_type = BlockType.HEADING_3),
+    BlockType.HEADING_4: partial(text_to_header_node, header_block_type = BlockType.HEADING_4),
+    BlockType.HEADING_5: partial(text_to_header_node, header_block_type = BlockType.HEADING_5),
+    BlockType.HEADING_6: partial(text_to_header_node, header_block_type = BlockType.HEADING_6),
+
+    # Maps paragraph block type to function that convert the text into paragraph node
+    BlockType.PARAGRAPH: text_to_paragraph_node,
+
+    # Maps code block type to function that convert the text into code node
+    BlockType.CODE: text_to_code_node,
+
+    # Maps quote block type to function that convert the text into quote node
+    BlockType.QUOTE: text_to_quote_node,
+
+    # Maps list block types to function that convert the text into list node
+    BlockType.UNORD_LIST: partial(text_to_list_node, list_block_type = BlockType.UNORD_LIST),
+    BlockType.ORD_LIST: partial(text_to_list_node, list_block_type = BlockType.ORD_LIST)
+
+}
 
 def markdown_to_html_node(markdown):
     """
@@ -18,31 +39,16 @@ def markdown_to_html_node(markdown):
     Returns:
         ParentNode: div HTML node containing HTMLNodes converted from each blocks as its content
     """
+
     blocks_list = markdown_to_blocks(markdown)
     
     div_content_children = []
     for block in blocks_list:
         block_type = block_to_blocktype(block)
 
-        match block_type:
-            case BlockType.HEADING_1 | BlockType.HEADING_2 | BlockType.HEADING_3 | BlockType.HEADING_4 | BlockType.HEADING_5 | BlockType.HEADING_6:
-                block_content_node = text_to_header_node(block, block_type)
-            
-            case BlockType.PARAGRAPH:
-                block_content_node = text_to_paragraph_node(block)
-            
-            case BlockType.QUOTE:
-                block_content_node = text_to_quote_node(block)
-            
-            case BlockType.CODE:
-                block_content_node = text_to_code_node(block)
+        conversion_func = BLOCKTYPE_TO_HTML_NODE_FUNCTION_MAP[block_type]
 
-            case BlockType.ORD_LIST | BlockType.UNORD_LIST:
-                block_content_node = text_to_list_node(block, block_type)
-
-            
-            case _:
-                raise Exception("Error: Invalid block type.")
+        block_content_node = conversion_func(block)
         
         div_content_children.append(block_content_node)
     
@@ -53,163 +59,3 @@ def markdown_to_html_node(markdown):
 
 
 
-def text_to_code_node(text):
-    """
-    Accept a markdown block containing a code block, convert it into code html node.
-
-    Args:
-        text (str): markdown block
-
-    Returns:
-        ParentNode_: code block with a single children with pre tag. The children is the content of the code block (not separated into appropriate leaf node html tags)
-    """
-
-    cleaned_text = text.strip() # Remove possible leading newlines/spaces before the triple backticks
-    cleaned_text = cleaned_text.strip(CODE_BLOCK_MARKER) # remove leading and trailing triple backgticks from the ends
-    cleaned_text = cleaned_text.lstrip() # Remove possible leading spaces/newlines/tabs within the code block
-    
-    pre_node = LeafNode(tag = BlockType.CODE.value,          # Code html node need to have one child node with a pre tag.
-                        value = cleaned_text) # Note: content of code block is represented as it is with no inline markdown parsing
-    
-    code_node = ParentNode(tag = "pre",             # For Code blocks (not inline blocks), it is enclosed by pre tag outside the code tag
-                           children = [pre_node])
-
-    return code_node
-
-
-def text_to_header_node(text, header_block_type):
-    """
-    Accept a markdown block containing a header block, convert it into quote html node.
-
-    Args:
-        text (str): markdown block
-        header_block_type (str): type of the header block (h1 up to h6)
-
-    Returns:
-        ParentNode: header node with its children separated into the appropriate leaf node html tags (bold, italics, etc.)
-    """
-
-    cleaned_text = re.sub(HEADER_BLOCK_MARKER, "", text, count=1) # Remove the leading hashtags from the text
-    child_nodes = text_to_children(cleaned_text)
-    header_node = ParentNode(tag = header_block_type.value,
-                             children = child_nodes)
-    
-    return header_node
-
-
-def text_to_paragraph_node(text):
-    """
-    Accept a markdown block containing a paragraph block, convert it into quote html node.
-    Note: Newlines are ignored and become spaces during conversion.
-
-    Args:
-        text (str): markdown block
-
-    Returns:
-        ParentNode: paragraph node with its children separated into the appropriate leaf node html tags (bold, italics, etc.)
-    """
-    
-    lines = text.split("\n")
-    paragraph_item_nodes = []
-    for line in lines:
-        cleaned_line = line.strip()
-        if line != lines[-1]:
-            cleaned_line += " " # Add final space at the end to replace the deleted newline in between lines
-        
-        child_nodes = text_to_children(cleaned_line)
-        paragraph_item_nodes.extend(child_nodes)
-    
-    paragraph_node = ParentNode(tag = BlockType.PARAGRAPH.value,
-                                children = paragraph_item_nodes)
-    return paragraph_node
-
-def text_to_quote_node(text):
-    """
-    Accept a markdown block containing a quote markdown block (each line starts with a '>'), convert it into quote html node
-    Note: Newlines are ignored and become spaces during conversion.
-
-    Args:
-        text (str): markdown block
-
-    Returns:
-        ParentNode: quote node with its children separated into the appropriate leaf node html tags (bold, italics, etc.)
-    """
-
-    lines = text.split("\n")
-    quote_item_nodes = []
-    for line in lines:
-        cleaned_line = re.sub(QUOTE_BLOCK_MARKER, "", line, count=1) # Remove the leading quote marker from the text
-        cleaned_line = cleaned_line.strip()
-        if line != lines[-1]:
-            cleaned_line += " "  # Add final space at the end to replace the deleted newline in between lines
-        
-
-        child_nodes = text_to_children(cleaned_line)
-        quote_item_nodes.extend(child_nodes)
-    
-    quote_node = ParentNode(tag = BlockType.QUOTE.value, 
-                            children = quote_item_nodes)
-    
-    return quote_node
-        
-
-
-def text_to_list_node(text, list_block_type):
-    """
-    Accept a markdown block containing list (ordered or unordered), convert it into a list html node.
-
-    Args:
-        text (str): markdown block containing list items
-        list_block_type (str): list type of the block (ordered or unordered list)
-
-    Returns:
-        ParentNode: list node with its list items as its children
-    """
-
-    match list_block_type:
-        # match the markers to remove later from each item using regex
-        case BlockType.UNORD_LIST:
-            item_marker = UNORDERED_LIST_BLOCK_MARKER
-        case BlockType.ORD_LIST:
-            item_marker = ORDERED_LIST_BLOCK_MARKER
-        
-        case _:
-            raise Exception("Error: list_block_type must be 'ul' for unordered list or 'ol' for ordered list.")
-    
-    lines = text.split("\n")
-    item_nodes = []
-    for line in lines:
-        cleaned_line = re.sub(item_marker, "", line, count=1) # Remove the leading list item marker from the text
-        cleaned_line = cleaned_line.strip()
-
-        child_nodes = text_to_children(cleaned_line)
-        
-        item_node = ParentNode(tag = "li",
-                                    children = child_nodes)
-        
-        item_nodes.append(item_node)
-    
-    list_node = ParentNode(tag = list_block_type.value,
-                           children = item_nodes)
-    
-    return list_node
-
-
-    
-
-def text_to_children(text):
-    """
-    Convert a markdown text -> split into list of TextNodes based on delimiters -> LeafNodes.
-    
-    Assumption: input text already has block markdown markers removed
-
-    Args:
-        text (str): markdown text to be converted
-
-    Returns:
-        list of LeafNodes: converted from markdown text
-    """
-    text_nodes = text_to_textnodes(text)
-    child_nodes = [text_node_to_html_node(node) for node in text_nodes]
-    return child_nodes
-    

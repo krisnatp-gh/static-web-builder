@@ -16,23 +16,14 @@ class BlockType(Enum):
     ORD_LIST   = "ol"
 
 
-def get_header_from_hashtag_count(hashtag_count):
-    match hashtag_count:
-        case 1:
-            return BlockType.HEADING_1
-        case 2:
-            return BlockType.HEADING_2
-        case 3:
-            return BlockType.HEADING_3
-        case 4:
-            return BlockType.HEADING_4
-        case 5:
-            return BlockType.HEADING_5
-        case 6:
-            return BlockType.HEADING_6
-        case _:
-            raise Exception("Error: Invalid hashtag count.")
-
+HEADER_HASHTAG_COUNT_DICT = {
+    1: BlockType.HEADING_1,
+    2: BlockType.HEADING_2,
+    3: BlockType.HEADING_3,
+    4: BlockType.HEADING_4,
+    5: BlockType.HEADING_5,
+    6: BlockType.HEADING_6
+}
 
 
 
@@ -49,7 +40,7 @@ def block_to_blocktype(markdown):
 
     if re.match(r"#{1,6} .+", markdown):
         hashtag_count = markdown.count("#", 0, 6)
-        header = get_header_from_hashtag_count(hashtag_count)
+        header = HEADER_HASHTAG_COUNT_DICT[hashtag_count]
         return header
         
     if markdown.startswith("```\n") and markdown.endswith("```"):
