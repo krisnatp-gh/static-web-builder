@@ -1,9 +1,7 @@
 import os
 import shutil
 
-from config import ASSET_DIR, OUTPUT_DIR
-
-def copy_static(source_dir=ASSET_DIR, dest_dir=OUTPUT_DIR):
+def copy_static(source_dir, dest_dir):
     # delete dest_dir
     shutil.rmtree(dest_dir)
 

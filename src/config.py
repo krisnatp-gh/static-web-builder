@@ -1,7 +1,15 @@
-# directories of the apps
+# some directories for the apps 
 ASSET_DIR = "static"
 
 OUTPUT_DIR = "public"
+
+TEMPLATE_PATH = "template.html"
+
+CONTENT_PATH = "content"
+
+MARKDOWN_FILENAME = 'index.md'
+
+OUTPUT_HTML_FILENAME = "index.html"
 
 
 
