@@ -1,7 +1,6 @@
-from textnode import *
-from htmlnode import *
+from copy_static import copy_static
 
 def main():
-    pass
+    copy_static()
 
 main()

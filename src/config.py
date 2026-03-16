@@ -1,3 +1,7 @@
+# directories of the apps
+ASSET_DIR = "static"
+
+OUTPUT_DIR = "public"
 
 
 
