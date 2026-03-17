@@ -14,6 +14,8 @@ class LeafNode(HTMLNode):
 
         if self.tag is None:
             return str(self.value)
+        elif self.tag is TextType.IMAGE.value:
+            return f"<{self.tag}{self.props_to_html()} />"
         else:
             return f"<{self.tag}{self.props_to_html()}>{str(self.value)}</{self.tag}>"
 
@@ -71,4 +73,4 @@ def text_node_to_html_node(text_node):
     
             return LeafNode(tag=text_node.text_type.value,
                             value="",
-                            props={"href": text_node_url, "alt": alt_text})
+                            props={"src": text_node_url, "alt": alt_text})

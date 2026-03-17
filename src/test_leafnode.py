@@ -95,9 +95,8 @@ class TestLeafNode(unittest.TestCase):
         html_node = text_node_to_html_node(text_node)
         self.assertEqual(html_node.tag, "img")
         self.assertEqual(html_node.value, "")
-        self.assertEqual(html_node.props, {"href": "https://xkcd.com/3204/", "alt":"dinosaurs comic"})
-
-        self.assertEqual(html_node.to_html(), '<img href="https://xkcd.com/3204/" alt="dinosaurs comic"></img>')
+        self.assertEqual(html_node.props, {"src": "https://xkcd.com/3204/", "alt":"dinosaurs comic"})
+        self.assertEqual(html_node.to_html(), '<img src="https://xkcd.com/3204/" alt="dinosaurs comic" />')
 
         
 

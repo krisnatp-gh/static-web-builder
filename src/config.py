@@ -7,9 +7,9 @@ TEMPLATE_PATH = "template.html"
 
 CONTENT_PATH = "content"
 
-MARKDOWN_FILENAME = 'index.md'
+# MARKDOWN_FILENAME = 'index.md'
 
-OUTPUT_HTML_FILENAME = "index.html"
+# OUTPUT_HTML_FILENAME = "index.html"
 
 
 
