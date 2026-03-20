@@ -1,16 +1,11 @@
 # some directories for the apps 
 ASSET_DIR = "static"
 
-OUTPUT_DIR = "public"
+OUTPUT_DIR = "docs"
 
 TEMPLATE_PATH = "template.html"
 
-CONTENT_PATH = "content"
-
-# MARKDOWN_FILENAME = 'index.md'
-
-# OUTPUT_HTML_FILENAME = "index.html"
-
+CONTENT_DIR = "content"
 
 
 # Pattern matching for extracting urls

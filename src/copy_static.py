@@ -3,7 +3,8 @@ import shutil
 
 def copy_static(source_dir, dest_dir_path):
     # delete dest_dir_path
-    shutil.rmtree(dest_dir_path)
+    if os.path.exists(dest_dir_path):
+        shutil.rmtree(dest_dir_path)
 
     # Copy each item from source_dir recursively
     copy_static_helper(source_dir, dest_dir_path)
