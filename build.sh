@@ -1,1 +1,1 @@
-python src/main.py "static-web-builder"
+python src/main.py "/static-web-builder/"
