@@ -71,7 +71,7 @@ def generate_page(from_path, template_path, dest_path, basepath):
 
     # adjust basepath of images and urls
     html_formatted = html_formatted.replace('href="/', f'href="{basepath}')
-    html_formatted = html_formatted.replace('src=/', f'src="{basepath}')
+    html_formatted = html_formatted.replace('src="/', f'src="{basepath}')
 
 
     # Write the formatted html into dest_path
